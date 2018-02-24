@@ -179,6 +179,7 @@ class Blockchain():
         self.__createGenesis__()
         self.__supply__ = 0
         self.__blockList__ = []
+        self.__blockReward__ = 0
         self.addBlock(self.__genesisBlock__)
 
     '''After tx list in Block class this will have to be changed'''
@@ -204,6 +205,7 @@ class Blockchain():
     def __generateCoin__(self):
         power = int(self.__length__ / 20)
         amount = float(50 / 2**power)
+        self.__blockReward__ = amount
         self.__supply__ += amount
 
 
@@ -215,6 +217,8 @@ class Blockchain():
     def getGenesisBlock(self): return self.__genesisBlock__
 
     def getSupply(self): return self.__supply__
+
+    def getReward(self): return self.__blockReward__
 
 
     def getBlockbyHash(self, searchHash):
@@ -276,10 +280,11 @@ while True:
     print("Block was mined %s" % newBlock.getMineTime())
     print("Length of blockchain is: %d blocks." % myBlockchain.getLength())
     print("Current difficulty is set to: %d prefixed zeros." % newBlock.getDifficulty())
+    print("The current reward is set to: %lf" % myBlockchain.getReward())
     print("Supply: %f.\n" % myBlockchain.getSupply())
     myData += 1
-    # generate 5 blocks for testing purposes 
-    if myBlockchain.getLength() == 5:
+    # generate 5 blocks for testing purposes
+    if myBlockchain.getLength() == 200:
         break
 
 
