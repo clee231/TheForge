@@ -5,7 +5,7 @@ import hashlib
 import sys
 import math
 
-difficultyBaseControl = 5
+difficultyBaseControl = 3
 
 
 
@@ -99,6 +99,7 @@ class Block():
         self.__nonce__ = 0
         self.__timestamp__ = getTimeStamp()
         self.__setBlockHeader__()
+        print('a')
         while not self.__blockHeader__[0:self.__difficulty__] == self.__target__:
             self.__nonce__ += 1
             self.__setBlockHeader__()
@@ -206,8 +207,6 @@ class Blockchain():
         self.__supply__ += amount
 
 
-
-
     '''Getters'''
     def getLatestBlock(self): return self.__latestBlock__
 
@@ -218,28 +217,24 @@ class Blockchain():
     def getSupply(self): return self.__supply__
 
 
-    '''FIXME'''
     def getBlockbyHash(self, searchHash):
         for x in self.__blockList__:
             if x.getBlockHash() == searchHash:
                 return x
         print ("Block could not be found.")
+        return None
 
-    '''FIXME'''
+
     def getBlockbyIndex(self, index):
         currentBlock = self.getLatestBlock()
-        iterations = currentBlock.getHeight() - index
-        if iterations < 0:
+        # if block doesnt exist, return None
+        if (index >= self.getLength()):
             print("Block has not been mined yet.")
-        elif index >= self.getLength() / 2:
-            for x in range(iterations):
-                prevHash = currentBlock.getPrevHash()
-                currentBlock = self.getBlockbyHash(prevHash)
-        else:
-            currentBlock = self.getGenesisBlock()
-            for x in range(iterations- 1):
-                nextHash = currentBlock.getNextHash()
-                currentBlock = getBlockbyHash(nextHash)
+            return None
+        iterations = currentBlock.getHeight() - index
+        for x in range(iterations):
+            prevHash = currentBlock.getPrevHash()
+            currentBlock = self.getBlockbyHash(prevHash)
         return currentBlock
 
 
@@ -267,18 +262,30 @@ print("Let us begin...\n")
 
 
 
-
+my_hash = ''
 while True:
     #myData = input("Data: ")
-    myData = 100
+    myData = 5
     newBlock = Block(myBlockchain.getLatestBlock().getBlockHash(), myBlockchain, myData)
     newBlock.findNonce()
     myBlockchain.addBlock(newBlock)
 
     print("Newest block hash is: \n\t%s" % newBlock.getBlockHash())
+    my_hash = newBlock.getBlockHash()
     print("Nonce: %d" % newBlock.getNonce())
     print("Block was mined %s" % newBlock.getMineTime())
     print("Length of blockchain is: %d blocks." % myBlockchain.getLength())
     print("Current difficulty is set to: %d prefixed zeros." % newBlock.getDifficulty())
     print("Supply: %f.\n" % myBlockchain.getSupply())
     myData += 1
+    # generate 5 blocks for testing purposes 
+    if myBlockchain.getLength() == 5:
+        break
+
+
+
+t=myBlockchain.getBlockbyHash('asdfaasdfa')
+if (t!= None):
+    print(t.getNonce())
+else:
+    print ("adsfasfadsf")
