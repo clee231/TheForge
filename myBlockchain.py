@@ -4,15 +4,16 @@ import datetime
 import hashlib
 import sys
 import math
-
-difficultyBaseControl = 3
-
+from tkinter import *
 
 
 
 
 
 '''Utility functions'''
+def set_difficulty(num):
+    global difficultyBaseControl
+    difficultyBaseControl = num
 
 def hashThis(myString):
     hashObject = hashlib.sha256()
@@ -22,10 +23,13 @@ def hashThis(myString):
 def getTimeStamp(): return float(time.time())
 
 def stopWatch(startTime):
-    endTime = int(time.time())
+    endTime = float(time.time())
     return endTime - startTime
 
-
+def createBlock(blockchain, data):
+    new_block = Block(blockchain.getLatestBlock().getBlockHash(), blockchain, data)
+    new_block.findNonce()
+    blockchain.addBlock(new_block)
 
 
 
@@ -76,7 +80,7 @@ class Block():
         self.__merkleroot__ = hashThis(m)
 
     def __setBlockHeader__(self):
-        m = str(self.__timestamp__) + str(self.__height__) + str(self.__merkleroot__) + str(self.__hashPrevBlock__) + str(self.__nonce__)
+        m = str(self.__timestamp__) + str(self.__height__) + str(self.__merkleroot__) + str(self.__hashPrevBlock__)
         self.__blockHeader__ = hashThis(m)
 
     '''Every x blocks, the difficulty increases by one zero'''
@@ -99,14 +103,18 @@ class Block():
         self.__nonce__ = 0
         self.__timestamp__ = getTimeStamp()
         self.__setBlockHeader__()
-        print('a')
-        while not self.__blockHeader__[0:self.__difficulty__] == self.__target__:
+        m = self.__blockHeader__ + str(self.__nonce__)
+        temp = hashThis(m)
+        while not temp[0:self.__difficulty__] == self.__target__:
             self.__nonce__ += 1
-            self.__setBlockHeader__()
+            m = self.__blockHeader__ + str(self.__nonce__)
+            temp = hashThis(m)
             if self.__nonce__ % 250007 == 0:
                 print('.', end = ' ', flush = True)
         print("\n")
+        self.__blockHash__ = temp
         self.__setMineTime__()
+        self.__work_time__ = stopWatch(self.__timestamp__)
         self.__size__ = sys.getsizeof(self)
 
 
@@ -115,7 +123,9 @@ class Block():
 
 
     '''Getters'''
-    def getBlockHash(self): return self.__blockHeader__
+    def getBlockHash(self): return self.__blockHash__
+
+    def getBlockHeader(self): return self.__blockHeader__
 
     def getNonce(self): return self.__nonce__
 
@@ -132,6 +142,8 @@ class Block():
     def getPrevHash(self): return self.__hashPrevBlock__
 
     def getDifficulty(self): return self.__difficulty__
+
+    def get_work_time(self): return self.__work_time__
 
     def getMineTime(self):
         return datetime.datetime.fromtimestamp(self.__mineTime__).strftime('%Y-%m-%d %H:%M:%S')
@@ -175,6 +187,7 @@ class Blockchain():
 
     '''Constructor'''
     def __init__(self):
+        set_difficulty(4)
         self.__length__ = 0
         self.__createGenesis__()
         self.__supply__ = 0
@@ -209,6 +222,9 @@ class Blockchain():
         self.__supply__ += amount
 
 
+
+
+
     '''Getters'''
     def getLatestBlock(self): return self.__latestBlock__
 
@@ -218,7 +234,11 @@ class Blockchain():
 
     def getSupply(self): return self.__supply__
 
-    def getReward(self): return self.__blockReward__
+    def get_average_worktime(self):
+        sum = float(0)
+        for x in self.__blockList__:
+            sum += x.get_work_time()
+        return sum/float(self.getLength())
 
 
     def getBlockbyHash(self, searchHash):
@@ -228,10 +248,9 @@ class Blockchain():
         print ("Block could not be found.")
         return None
 
-
+    '''Returns none, needs to be modified to handle gets'''
     def getBlockbyIndex(self, index):
         currentBlock = self.getLatestBlock()
-        # if block doesnt exist, return None
         if (index >= self.getLength()):
             print("Block has not been mined yet.")
             return None
@@ -249,48 +268,33 @@ class Blockchain():
 
 
 
+if __name__ == "__main__":
+
+    ''' SANDBOX '''
 
 
-''' SANDBOX '''
+    print("Initializing...\n")
+    myBlockchain = Blockchain()
 
+    print("Genesis achieved.")
+    print("Genesis block hash is \n\t%s" % myBlockchain.getLatestBlock().getBlockHash())
+    print("Length of blockchain is: %d block." % myBlockchain.getLength())
+    print("Current difficulty is set to: %d prefixed zeros." % myBlockchain.getGenesisBlock().getDifficulty())
+    print("Let us begin...\n")
 
-print("Initializing...\n")
-myBlockchain = Blockchain()
+    while True:
+        myData = input("Data: ")
+        #myData = 100
 
-print("Genesis achieved.")
-print("Genesis block hash is \n\t%s" % myBlockchain.getLatestBlock().getBlockHash())
-print("Length of blockchain is: %d block." % myBlockchain.getLength())
-print("Current difficulty is set to: %d prefixed zeros." % myBlockchain.getGenesisBlock().getDifficulty())
-print("Let us begin...\n")
+        newBlock = Block(myBlockchain.getLatestBlock().getBlockHash(), myBlockchain, myData)
+        newBlock.findNonce()
+        myBlockchain.addBlock(newBlock)
 
-
-
-
-my_hash = ''
-while True:
-    #myData = input("Data: ")
-    myData = 5
-    newBlock = Block(myBlockchain.getLatestBlock().getBlockHash(), myBlockchain, myData)
-    newBlock.findNonce()
-    myBlockchain.addBlock(newBlock)
-
-    print("Newest block hash is: \n\t%s" % newBlock.getBlockHash())
-    my_hash = newBlock.getBlockHash()
-    print("Nonce: %d" % newBlock.getNonce())
-    print("Block was mined %s" % newBlock.getMineTime())
-    print("Length of blockchain is: %d blocks." % myBlockchain.getLength())
-    print("Current difficulty is set to: %d prefixed zeros." % newBlock.getDifficulty())
-    print("The current reward is set to: %lf" % myBlockchain.getReward())
-    print("Supply: %f.\n" % myBlockchain.getSupply())
-    myData += 1
-    # generate 5 blocks for testing purposes
-    if myBlockchain.getLength() == 200:
-        break
-
-
-
-t=myBlockchain.getBlockbyHash('asdfaasdfa')
-if (t!= None):
-    print(t.getNonce())
-else:
-    print ("adsfasfadsf")
+        print("Newest block hash is: \n\t%s" % newBlock.getBlockHash())
+        print("Nonce: %d" % newBlock.getNonce())
+        print("Block was mined %s" % newBlock.getMineTime())
+        print("Length of blockchain is: %d blocks." % myBlockchain.getLength())
+        print("Current difficulty is set to: %d prefixed zeros." % newBlock.getDifficulty())
+        print("Supply: %f.\n" % myBlockchain.getSupply())
+        print("Average work time: %f." %myBlockchain.get_average_worktime())
+    #myData += 1
