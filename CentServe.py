@@ -1,7 +1,10 @@
 import myBlockchain
 import test_suite
+import threading
 import socket
+import json
 import sys
+
 
 class Cent():
     def __init__(self):
@@ -27,8 +30,10 @@ class Cent():
     def recv_msg(self):
         data = self.s.recv(1024)
 
-    '''def send_blockchain(self):'''
+    def genesis(self):
 
-    '''def auth_incoming_block(self):'''
+    def send_blockchain(self):
 
-    '''def relay_block(self):'''
+    def auth_incoming_block(self):
+
+    def relay_block(self):

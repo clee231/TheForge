@@ -6,7 +6,7 @@ import sys
 
 class Server:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ip = '0.0.0.0'
+    ip = '10.4.212.130'
     connections = []
     def __init__(self):
         self.sock.bind((self.ip, 10000))

@@ -2,11 +2,18 @@ import myBlockchain
 import test_suite
 import threading
 import socket
+import json
 import sys
 
 class Node():
     '''Constructor'''
     def __init__(self):
+        self.connect_me()
+        self.run()
+
+
+    '''Connect to server'''
+    def connect_me(self):
         len(sys.argv) = argc
         if argc < 2:
             self.HOST = input("IP: ")
@@ -14,11 +21,6 @@ class Node():
         else:
             self.HOST = sys.argv[1]
             self.PORT = sys.argv[2]
-        self.connect_me()
-        self.run()
-
-    '''Connect to server'''
-    def connect_me(self):
         self.s = socket.socket()
         self.s.connect((self.HOST, self.PORT))
         print("Connected to:" self.HOST)
@@ -32,9 +34,6 @@ class Node():
             self.recv_msg()
 
 
-
-
-
     '''Outgoing'''
     def send_msg(self):
         while True:
@@ -44,10 +43,10 @@ class Node():
     def recv_msg(self):
         data = self.s.recv(1024)
 
-    '''def download_blockchain(self):'''
+    def download_blockchain(self):
 
-    '''def construct_next_block(self):'''
+    def construct_next_block(self):
 
-    '''def auth_incoming_block(self):'''
+    def auth_incoming_block(self):
 
-    '''def broadcast_block(self):'''
+    def broadcast_block(self):
